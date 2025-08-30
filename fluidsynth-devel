@@ -13,6 +13,4 @@ RUN zypper install --no-recommends -y doxygen
 RUN zypper install --no-recommends -y astyle gdb
 
 
-WORKDIR /fluidsynth
-
 ENTRYPOINT ["/bin/bash"]
