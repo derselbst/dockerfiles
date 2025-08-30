@@ -12,6 +12,7 @@ env:
   REGISTRY: ${{ vars.DOCKER_REGISTRY || 'ghcr.io' }}
   REGISTRY_USERNAME: ${{ vars.DOCKER_USERNAME || github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.GITHUB_TOKEN }}
+  DOCKER_BUILD_EXPORT_LEGACY: "true"
 
 jobs:
   detect-changes:
@@ -111,6 +112,12 @@ jobs:
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+      packages: write
+      attestations: write
+      id-token: write
 
     steps:
       - name: Checkout repository

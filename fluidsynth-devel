@@ -12,5 +12,4 @@ RUN zypper install --no-recommends -y doxygen
 
 RUN zypper install --no-recommends -y astyle gdb
 
-
 ENTRYPOINT ["/bin/bash"]
