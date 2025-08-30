@@ -1,4 +1,4 @@
-FROM opensuse/leap:15.6 AS qt-devel
+FROM opensuse/leap:15.6 AS qt6-devel
 
 RUN zypper addrepo https://download.opensuse.org/repositories/home:derselbst/15.6/home:derselbst.repo
 RUN zypper --gpg-auto-import-keys refresh
