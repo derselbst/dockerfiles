@@ -1,0 +1,18 @@
+FROM opensuse/leap:15.5
+
+RUN zypper install --no-recommends -y git
+# this is what we need for running a pipeline in the container
+RUN zypper install --no-recommends -y sudo shadow util-linux
+
+RUN zypper install --no-recommends -y cmake pkg-config make gcc-c++ alsa-devel libjack-devel pipewire-devel libSDL3-devel readline-devel glib2-devel libsndfile-devel
+
+RUN zypper install --no-recommends -y clang bash
+
+RUN zypper install --no-recommends -y doxygen
+
+RUN zypper install --no-recommends -y astyle gdb
+
+
+WORKDIR /fluidsynth
+
+ENTRYPOINT ["/bin/bash"]
