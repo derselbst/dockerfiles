@@ -1,9 +1,5 @@
 name: Build Docker Images
 
-# This workflow builds Docker images for each Dockerfile in the repository.
-# It only runs when Dockerfile directories or related dependencies are changed.
-# Built images are tagged with the commit SHA and pushed to the configured registry.
-
 on:
   push:
     paths-ignore:
@@ -13,10 +9,6 @@ on:
       - 'README.md'
 
 env:
-  # Configure these variables/secrets to customize registry settings:
-  # - DOCKER_REGISTRY: Registry URL (defaults to ghcr.io)
-  # - DOCKER_USERNAME: Registry username (defaults to github.actor)
-  # - DOCKER_PASSWORD: Registry password (required secret)
   REGISTRY: ${{ vars.DOCKER_REGISTRY || 'ghcr.io' }}
   REGISTRY_USERNAME: ${{ vars.DOCKER_USERNAME || github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.GITHUB_TOKEN }}
@@ -25,7 +17,6 @@ jobs:
   detect-changes:
     runs-on: ubuntu-latest
     outputs:
-      changed-dockerfiles: ${{ steps.changes.outputs.changed-dockerfiles }}
       matrix: ${{ steps.changes.outputs.matrix }}
     steps:
       - name: Checkout repository
@@ -36,77 +27,91 @@ jobs:
       - name: Detect changed Dockerfiles
         id: changes
         run: |
-          # Define all Dockerfile directories
-          DOCKERFILES=(
+          # Define lists for linux and windows images with their OS/platform
+          LINUX_DOCKERFILES=(
             "fluidsynth-devel"
             "qt6-dbg.suse"
             "qt6-kf6.ubuntu"
             "qt6.suse"
             "qt6.ubuntu"
+          )
+          WINDOWS_DOCKERFILES=(
             "qt6.win"
           )
-          
-          CHANGED_DOCKERFILES=()
-          
+
+          CHANGED_MATRIX=()
+
           # Get list of changed files
           if git rev-parse HEAD~1 >/dev/null 2>&1; then
             CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
           else
             # First commit, build all
-            CHANGED_FILES=$(echo "${DOCKERFILES[@]}" | tr ' ' '\n')
+            CHANGED_FILES=$(printf "%s\n%s\n" "${LINUX_DOCKERFILES[@]}" "${WINDOWS_DOCKERFILES[@]}")
           fi
-          
+
           echo "Changed files:"
           echo "$CHANGED_FILES"
-          
-          # Check for changes in each Dockerfile
-          for dockerfile in "${DOCKERFILES[@]}"; do
+
+          # Linux check
+          for dockerfile in "${LINUX_DOCKERFILES[@]}"; do
             if echo "$CHANGED_FILES" | grep -E "^${dockerfile}$" > /dev/null; then
-              CHANGED_DOCKERFILES+=("$dockerfile")
-              echo "Direct change detected for: $dockerfile"
+              CHANGED_MATRIX+=("{\"dockerfile\":\"$dockerfile\",\"os\":\"ubuntu-latest\",\"platforms\":\"linux/amd64\"}")
+              echo "Direct change detected for (linux): $dockerfile"
             fi
           done
-          
+
+          # Windows check
+          for dockerfile in "${WINDOWS_DOCKERFILES[@]}"; do
+            if echo "$CHANGED_FILES" | grep -E "^${dockerfile}$" > /dev/null; then
+              CHANGED_MATRIX+=("{\"dockerfile\":\"$dockerfile\",\"os\":\"windows-latest\",\"platforms\":\"windows/amd64\"}")
+              echo "Direct change detected for (windows): $dockerfile"
+            fi
+          done
+
           # Special case: if certs directory changed, rebuild qt6.win since it depends on it
           if echo "$CHANGED_FILES" | grep -E "^certs/" > /dev/null; then
-            if ! printf '%s\n' "${CHANGED_DOCKERFILES[@]}" | grep -q "qt6.win"; then
-              CHANGED_DOCKERFILES+=("qt6.win")
+            already=false
+            for entry in "${CHANGED_MATRIX[@]}"; do
+              if echo "$entry" | grep -q "\"dockerfile\":\"qt6.win\""; then
+                already=true
+                break
+              fi
+            done
+            if [ "$already" = false ]; then
+              CHANGED_MATRIX+=("{\"dockerfile\":\"qt6.win\",\"os\":\"windows-latest\",\"platforms\":\"windows/amd64\"}")
               echo "Certs changed, adding qt6.win to rebuild list"
             fi
           fi
-          
-          # Create JSON array for matrix strategy
-          if [ ${#CHANGED_DOCKERFILES[@]} -eq 0 ]; then
-            echo "changed-dockerfiles=[]" >> $GITHUB_OUTPUT
+
+          # Output matrix
+          if [ ${#CHANGED_MATRIX[@]} -eq 0 ]; then
             echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
             echo "No Dockerfiles to build"
           else
-            # Convert to JSON array for changed-dockerfiles
-            CHANGED_JSON=$(printf '"%s",' "${CHANGED_DOCKERFILES[@]}")
-            CHANGED_JSON="[${CHANGED_JSON%,}]"
-            echo "changed-dockerfiles=$CHANGED_JSON" >> $GITHUB_OUTPUT
-            
-            # Create matrix include array
-            MATRIX_INCLUDE=""
-            for dockerfile in "${CHANGED_DOCKERFILES[@]}"; do
-              if [ -n "$MATRIX_INCLUDE" ]; then
-                MATRIX_INCLUDE="$MATRIX_INCLUDE,"
+            matrix="{\"include\":["
+            first=true
+            for entry in "${CHANGED_MATRIX[@]}"; do
+              if [ "$first" = true ]; then
+                first=false
+              else
+                matrix+=","
               fi
-              MATRIX_INCLUDE="$MATRIX_INCLUDE{\"dockerfile\":\"$dockerfile\"}"
+              matrix+="$entry"
             done
-            
-            echo "matrix={\"include\":[$MATRIX_INCLUDE]}" >> $GITHUB_OUTPUT
-            echo "Changed Dockerfiles to build: ${CHANGED_DOCKERFILES[*]}"
+            matrix+="]}"
+            echo "matrix=$matrix" >> $GITHUB_OUTPUT
+            echo "Matrix: $matrix"
           fi
 
   build-docker-images:
     needs: detect-changes
-    if: needs.detect-changes.outputs.changed-dockerfiles != '[]'
-    runs-on: ubuntu-latest
+    if: needs.detect-changes.outputs.matrix != '{"include":[]}'
     strategy:
       matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
       fail-fast: false
-    
+
+    runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -140,11 +145,10 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          # Build for linux/amd64 by default, add others as needed
-          platforms: linux/amd64
+          platforms: ${{ matrix.platforms }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
-          
+
       - name: Image build summary
         run: |
           echo "✅ Successfully built and pushed Docker image for: ${{ matrix.dockerfile }}"
