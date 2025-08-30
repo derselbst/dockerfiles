@@ -1,5 +1,9 @@
 name: Build Docker Images
 
+# This workflow builds Docker images for each Dockerfile in the repository.
+# It only runs when Dockerfile directories or related dependencies are changed.
+# Built images are tagged with the commit SHA and pushed to the configured registry.
+
 on:
   push:
     paths:
@@ -21,6 +25,10 @@ on:
       - 'certs/**'
 
 env:
+  # Configure these variables/secrets to customize registry settings:
+  # - DOCKER_REGISTRY: Registry URL (defaults to ghcr.io)
+  # - DOCKER_USERNAME: Registry username (defaults to github.actor)
+  # - DOCKER_PASSWORD: Registry password (required secret)
   REGISTRY: ${{ vars.DOCKER_REGISTRY || 'ghcr.io' }}
   REGISTRY_USERNAME: ${{ vars.DOCKER_USERNAME || github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.GITHUB_TOKEN }}
@@ -52,18 +60,30 @@ jobs:
           
           CHANGED_DOCKERFILES=()
           
-          # Check for changes in each Dockerfile directory
+          # Get list of changed files
+          if git rev-parse HEAD~1 >/dev/null 2>&1; then
+            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
+          else
+            # First commit, build all
+            CHANGED_FILES=$(echo "${DOCKERFILES[@]}" | tr ' ' '\n')
+          fi
+          
+          echo "Changed files:"
+          echo "$CHANGED_FILES"
+          
+          # Check for changes in each Dockerfile
           for dockerfile in "${DOCKERFILES[@]}"; do
-            if git diff --name-only HEAD~1 HEAD | grep -E "^${dockerfile}$|^certs/" > /dev/null; then
+            if echo "$CHANGED_FILES" | grep -E "^${dockerfile}$" > /dev/null; then
               CHANGED_DOCKERFILES+=("$dockerfile")
+              echo "Direct change detected for: $dockerfile"
             fi
           done
           
-          # For push events on main/master branch, also check if this is the first commit
-          if [[ "${{ github.event_name }}" == "push" && ("${{ github.ref }}" == "refs/heads/main" || "${{ github.ref }}" == "refs/heads/master") ]]; then
-            # If no previous commit exists, build all Dockerfiles
-            if ! git rev-parse HEAD~1 >/dev/null 2>&1; then
-              CHANGED_DOCKERFILES=("${DOCKERFILES[@]}")
+          # Special case: if certs directory changed, rebuild qt6.win since it depends on it
+          if echo "$CHANGED_FILES" | grep -E "^certs/" > /dev/null; then
+            if ! printf '%s\n' "${CHANGED_DOCKERFILES[@]}" | grep -q "qt6.win"; then
+              CHANGED_DOCKERFILES+=("qt6.win")
+              echo "Certs changed, adding qt6.win to rebuild list"
             fi
           fi
           
@@ -71,8 +91,14 @@ jobs:
           if [ ${#CHANGED_DOCKERFILES[@]} -eq 0 ]; then
             echo "changed-dockerfiles=[]" >> $GITHUB_OUTPUT
             echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
+            echo "No Dockerfiles to build"
           else
-            # Convert to JSON array
+            # Convert to JSON array for changed-dockerfiles
+            CHANGED_JSON=$(printf '"%s",' "${CHANGED_DOCKERFILES[@]}")
+            CHANGED_JSON="[${CHANGED_JSON%,}]"
+            echo "changed-dockerfiles=$CHANGED_JSON" >> $GITHUB_OUTPUT
+            
+            # Create matrix include array
             MATRIX_INCLUDE=""
             for dockerfile in "${CHANGED_DOCKERFILES[@]}"; do
               if [ -n "$MATRIX_INCLUDE" ]; then
@@ -81,11 +107,9 @@ jobs:
               MATRIX_INCLUDE="$MATRIX_INCLUDE{\"dockerfile\":\"$dockerfile\"}"
             done
             
-            echo "changed-dockerfiles=[$(IFS=,; echo "\"${CHANGED_DOCKERFILES[*]// /\",\"}\")]" >> $GITHUB_OUTPUT
             echo "matrix={\"include\":[$MATRIX_INCLUDE]}" >> $GITHUB_OUTPUT
+            echo "Changed Dockerfiles to build: ${CHANGED_DOCKERFILES[*]}"
           fi
-          
-          echo "Changed Dockerfiles: ${CHANGED_DOCKERFILES[*]}"
 
   build-docker-images:
     needs: detect-changes
@@ -128,6 +152,13 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # Build for linux/amd64 by default, add others as needed
           platforms: linux/amd64
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          
+      - name: Image build summary
+        run: |
+          echo "✅ Successfully built and pushed Docker image for: ${{ matrix.dockerfile }}"
+          echo "🏷️  Tags: ${{ steps.meta.outputs.tags }}"
+          echo "📦 Registry: ${{ env.REGISTRY }}"
