@@ -6,23 +6,11 @@ name: Build Docker Images
 
 on:
   push:
-    paths:
-      - 'fluidsynth-devel'
-      - 'qt6-dbg.suse'
-      - 'qt6-kf6.ubuntu'
-      - 'qt6.suse'
-      - 'qt6.ubuntu'
-      - 'qt6.win'
-      - 'certs/**'
+    paths-ignore:
+      - 'README.md'
   pull_request:
-    paths:
-      - 'fluidsynth-devel'
-      - 'qt6-dbg.suse'
-      - 'qt6-kf6.ubuntu'
-      - 'qt6.suse'
-      - 'qt6.ubuntu'
-      - 'qt6.win'
-      - 'certs/**'
+    paths-ignore:
+      - 'README.md'
 
 env:
   # Configure these variables/secrets to customize registry settings:
