@@ -1,7 +1,9 @@
 FROM opensuse/leap:15.6 AS qt6-devel
 
 RUN zypper addrepo https://download.opensuse.org/repositories/home:derselbst/15.6/home:derselbst.repo
-RUN zypper --gpg-auto-import-keys refresh
+
+RUN zypper clean --all && zypper modifyrepo --refresh your-repo
+
 
 # this is for basic development of ANPV, excluding QT6
 RUN zypper install --no-recommends -y cmake pkg-config make gcc-c++ libraw-devel libtiff-devel libjpeg-devel libexiv2-devel libpng16-devel libjxl-devel extra-cmake-modules

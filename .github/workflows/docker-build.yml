@@ -22,9 +22,6 @@ jobs:
           - dockerfile: fluidsynth-devel
             os: ubuntu-latest
             platforms: linux/amd64
-          - dockerfile: qt6-dbg.suse
-            os: ubuntu-latest
-            platforms: linux/amd64
           - dockerfile: qt6-kf6.ubuntu
             os: ubuntu-latest
             platforms: linux/amd64
@@ -88,14 +85,10 @@ jobs:
 
       - name: Build and push Docker image (Windows)
         if: runner.os == 'Windows'
-        uses: docker/build-push-action@v1
-        with:
-          context: .
-          file: ${{ matrix.dockerfile }}
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          # platforms: ${{ matrix.platforms }} # v1 does not support multi-platform
+        shell: cmd
+        run: |
+          docker build -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/{{ matrix.dockerfile }}:latest .
+          docker push ghcr.io/derselbst/{{ matrix.dockerfile }}:latest
 
       - name: Image build summary
         run: |

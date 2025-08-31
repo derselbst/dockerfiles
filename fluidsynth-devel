@@ -1,5 +1,7 @@
 FROM opensuse/leap:15.5
 
+RUN zypper clean --all && zypper modifyrepo --refresh your-repo
+
 RUN zypper install --no-recommends -y git
 # this is what we need for running a pipeline in the container
 RUN zypper install --no-recommends -y sudo shadow util-linux
