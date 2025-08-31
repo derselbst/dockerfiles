@@ -87,8 +87,8 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          docker build -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/{{ matrix.dockerfile }}:latest .
-          docker push ghcr.io/derselbst/{{ matrix.dockerfile }}:latest
+          docker build -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
+          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
 
       - name: Image build summary
         run: |

@@ -1,26 +1,22 @@
 FROM opensuse/leap:15.6 AS qt6-devel
 
 RUN zypper addrepo https://download.opensuse.org/repositories/home:derselbst/15.6/home:derselbst.repo
-
-RUN zypper clean --all && zypper modifyrepo --refresh your-repo
-
+RUN zypper --gpg-auto-import-keys refresh
 
 # this is for basic development of ANPV, excluding QT6
-RUN zypper install --no-recommends -y cmake pkg-config make gcc-c++ libraw-devel libtiff-devel libjpeg-devel libexiv2-devel libpng16-devel libjxl-devel extra-cmake-modules
-RUN zypper install --no-recommends -y libX11-devel libxcb-devel libgpgme-devel xcb-util-keysyms-devel
-RUN zypper install --no-recommends -y git
+RUN zypper refresh && zypper install --no-recommends -y cmake pkg-config make gcc-c++ libraw-devel libtiff-devel libjpeg-devel libexiv2-devel libpng16-devel libjxl-devel extra-cmake-modules
+RUN zypper refresh && zypper install --no-recommends -y libX11-devel libxcb-devel libgpgme-devel xcb-util-keysyms-devel
+RUN zypper refresh && zypper install --no-recommends -y git
 
-RUN zypper install --no-recommends -y qt6-base-devel qt6-tools-devel qt6-imageformats-devel qt6-svg-devel qt6-qt5compat-devel
+RUN zypper refresh && zypper install --no-recommends -y qt6-base-devel qt6-tools-devel qt6-imageformats-devel qt6-svg-devel qt6-qt5compat-devel
 
 # this is what we need for running a pipeline in the container
-RUN zypper install --no-recommends -y sudo shadow util-linux
+RUN zypper refresh && zypper install --no-recommends -y sudo shadow util-linux
 
 # this is needed for running ANPV in a container, displaying fonts correctly, etc.
-RUN zypper install --no-recommends -y xauth xorg-x11-fonts xorg-x11-fonts-converted
+RUN zypper refresh && zypper install --no-recommends -y xauth xorg-x11-fonts xorg-x11-fonts-converted
 
 FROM qt6-devel AS qt6-dbg
 
-RUN zypper refresh
-
-RUN zypper --plus-content debug install --no-recommends -y qt6-base-debugsource qt6-base-debuginfo qt6-tools-debuginfo qt6-imageformats-debuginfo qt6-svg-debuginfo libQt6Concurrent6-debuginfo libQt6DBus6-debuginfo libQt6Gui6-debuginfo libQt6Svg6-debuginfo libQt6Widgets6-debuginfo libQt6Core6-debuginfo
+RUN zypper refresh && zypper --plus-content debug install --no-recommends -y qt6-base-debugsource qt6-base-debuginfo qt6-tools-debuginfo qt6-imageformats-debuginfo qt6-svg-debuginfo libQt6Concurrent6-debuginfo libQt6DBus6-debuginfo libQt6Gui6-debuginfo libQt6Svg6-debuginfo libQt6Widgets6-debuginfo libQt6Core6-debuginfo
 
