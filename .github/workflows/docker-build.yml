@@ -15,100 +15,28 @@ env:
   DOCKER_BUILD_EXPORT_LEGACY: "true"
 
 jobs:
-  detect-changes:
-    runs-on: ubuntu-latest
-    outputs:
-      matrix: ${{ steps.changes.outputs.matrix }}
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
-
-      - name: Detect changed Dockerfiles
-        id: changes
-        run: |
-          # Define lists for linux and windows images with their OS/platform
-          LINUX_DOCKERFILES=(
-            "fluidsynth-devel"
-            "qt6-dbg.suse"
-            "qt6-kf6.ubuntu"
-            "qt6.suse"
-            "qt6.ubuntu"
-          )
-          WINDOWS_DOCKERFILES=(
-            "qt6.win"
-          )
-
-          CHANGED_MATRIX=()
-
-          # Get list of changed files
-          if git rev-parse HEAD~1 >/dev/null 2>&1; then
-            CHANGED_FILES=$(git diff --name-only HEAD~1 HEAD)
-          else
-            # First commit, build all
-            CHANGED_FILES=$(printf "%s\n%s\n" "${LINUX_DOCKERFILES[@]}" "${WINDOWS_DOCKERFILES[@]}")
-          fi
-
-          echo "Changed files:"
-          echo "$CHANGED_FILES"
-
-          # Linux check
-          for dockerfile in "${LINUX_DOCKERFILES[@]}"; do
-            if echo "$CHANGED_FILES" | grep -E "^${dockerfile}$" > /dev/null; then
-              CHANGED_MATRIX+=("{\"dockerfile\":\"$dockerfile\",\"os\":\"ubuntu-latest\",\"platforms\":\"linux/amd64\"}")
-              echo "Direct change detected for (linux): $dockerfile"
-            fi
-          done
-
-          # Windows check
-          for dockerfile in "${WINDOWS_DOCKERFILES[@]}"; do
-            if echo "$CHANGED_FILES" | grep -E "^${dockerfile}$" > /dev/null; then
-              CHANGED_MATRIX+=("{\"dockerfile\":\"$dockerfile\",\"os\":\"windows-2022\",\"platforms\":\"windows/amd64\"}")
-              echo "Direct change detected for (windows): $dockerfile"
-            fi
-          done
-
-          # Special case: if certs directory changed, rebuild qt6.win since it depends on it
-          if echo "$CHANGED_FILES" | grep -E "^certs/" > /dev/null; then
-            already=false
-            for entry in "${CHANGED_MATRIX[@]}"; do
-              if echo "$entry" | grep -q "\"dockerfile\":\"qt6.win\""; then
-                already=true
-                break
-              fi
-            done
-            if [ "$already" = false ]; then
-              CHANGED_MATRIX+=("{\"dockerfile\":\"qt6.win\",\"os\":\"windows-2022\",\"platforms\":\"windows/amd64\"}")
-              echo "Certs changed, adding qt6.win to rebuild list"
-            fi
-          fi
-
-          # Output matrix
-          if [ ${#CHANGED_MATRIX[@]} -eq 0 ]; then
-            echo "matrix={\"include\":[]}" >> $GITHUB_OUTPUT
-            echo "No Dockerfiles to build"
-          else
-            matrix="{\"include\":["
-            first=true
-            for entry in "${CHANGED_MATRIX[@]}"; do
-              if [ "$first" = true ]; then
-                first=false
-              else
-                matrix+=","
-              fi
-              matrix+="$entry"
-            done
-            matrix+="]}"
-            echo "matrix=$matrix" >> $GITHUB_OUTPUT
-            echo "Matrix: $matrix"
-          fi
-
   build-docker-images:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.matrix != '{"include":[]}'
     strategy:
-      matrix: ${{ fromJson(needs.detect-changes.outputs.matrix) }}
+      matrix:
+        include:
+          - dockerfile: fluidsynth-devel
+            os: ubuntu-latest
+            platforms: linux/amd64
+          - dockerfile: qt6-dbg.suse
+            os: ubuntu-latest
+            platforms: linux/amd64
+          - dockerfile: qt6-kf6.ubuntu
+            os: ubuntu-latest
+            platforms: linux/amd64
+          - dockerfile: qt6.suse
+            os: ubuntu-latest
+            platforms: linux/amd64
+          - dockerfile: qt6.ubuntu
+            os: ubuntu-latest
+            platforms: linux/amd64
+          - dockerfile: qt6.win
+            os: windows-2022
+            platforms: windows/amd64
       fail-fast: false
 
     runs-on: ${{ matrix.os }}
@@ -145,7 +73,8 @@ jobs:
             type=sha,prefix={{branch}}-
             type=raw,value=${{ github.sha }}
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (Linux)
+        if: runner.os != 'Windows'
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -156,6 +85,17 @@ jobs:
           platforms: ${{ matrix.platforms }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Build and push Docker image (Windows)
+        if: runner.os == 'Windows'
+        uses: docker/build-push-action@v1
+        with:
+          context: .
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          # platforms: ${{ matrix.platforms }} # v1 does not support multi-platform
 
       - name: Image build summary
         run: |
