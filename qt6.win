@@ -66,7 +66,7 @@ SHELL ["cmd", "/S", "/C"]
 FROM buildtools AS vcpkg-builder
 
 ENV VCPKG_INSTALLATION_ROOT=C:\vcpkg
-ENV VCPKG_REVISION=8eb57355a4ffb410a2e94c07b4dca2dffbee8e50
+ENV VCPKG_REVISION=120deac3062162151622ca4860575a33844ba10b
 
 RUN git config --global user.email "you@example.com"
 RUN git config --global user.name "Your Name"
@@ -133,3 +133,4 @@ RUN setx path "%path%;C:\Program Files\Git\bin;C:\CMake\bin;C:\PowerShell"
 
 # Use developer command prompt and start PowerShell if no other command specified.
 #ENTRYPOINT C:\BuildTools\Common7\Tools\VsDevCmd.bat
+
