@@ -77,7 +77,7 @@ RUN git checkout --force %VCPKG_REVISION%
 RUN bootstrap-vcpkg.bat
 
 ARG PLATFORM=x64
-ENV VCPKG_MAX_CONCURRENCY=17
+ENV VCPKG_MAX_CONCURRENCY=3
 
 # tell vcpkg to only compile release package, not debug ones
 RUN echo set(VCPKG_BUILD_TYPE release) >> triplets/%PLATFORM%-windows.cmake

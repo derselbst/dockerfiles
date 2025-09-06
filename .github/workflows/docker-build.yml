@@ -22,9 +22,6 @@ jobs:
           - dockerfile: fluidsynth-devel
             os: ubuntu-latest
             platforms: linux/amd64
-          - dockerfile: qt6-kf6.ubuntu
-            os: ubuntu-latest
-            platforms: linux/amd64
           - dockerfile: qt6.suse
             os: ubuntu-latest
             platforms: linux/amd64
