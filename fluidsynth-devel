@@ -16,6 +16,6 @@ RUN zypper refresh && zypper install --no-recommends -y doxygen
 
 RUN zypper refresh && zypper install --no-recommends -y astyle gdb
 
-RUN zypper refresh && zypper install --no-recommends -y libSDL3-devel
+RUN zypper refresh && zypper install --no-recommends -y SDL3-devel
 
 ENTRYPOINT ["/bin/bash"]
