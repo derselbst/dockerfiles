@@ -1,15 +1,21 @@
 FROM opensuse/leap:15.6
 
+# SDL3 not shipped by leap 15.6 itself
+RUN zypper addrepo https://download.opensuse.org/repositories/games/15.6/games.repo
+RUN zypper --gpg-auto-import-keys refresh
+
 RUN zypper refresh && zypper install --no-recommends -y git
 # this is what we need for running a pipeline in the container
 RUN zypper refresh && zypper install --no-recommends -y sudo shadow util-linux
 
-RUN zypper refresh && zypper install --no-recommends -y cmake pkg-config make gcc-c++ alsa-devel libjack-devel pipewire-devel libSDL3-devel readline-devel glib2-devel libsndfile-devel
+RUN zypper refresh && zypper install --no-recommends -y cmake pkg-config make gcc-c++ alsa-devel libjack-devel pipewire-devel readline-devel glib2-devel libsndfile-devel
 
 RUN zypper refresh && zypper install --no-recommends -y clang bash
 
 RUN zypper refresh && zypper install --no-recommends -y doxygen
 
 RUN zypper refresh && zypper install --no-recommends -y astyle gdb
+
+RUN zypper refresh && zypper install --no-recommends -y libSDL3-devel
 
 ENTRYPOINT ["/bin/bash"]
