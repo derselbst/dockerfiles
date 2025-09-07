@@ -66,18 +66,18 @@ SHELL ["cmd", "/S", "/C"]
 FROM buildtools AS vcpkg-builder
 
 ENV VCPKG_INSTALLATION_ROOT=C:\vcpkg
-ENV VCPKG_REVISION=120deac3062162151622ca4860575a33844ba10b
+ENV VCPKG_REVISION=70f425a897fcde3783b86b39add480d6e663795f
 
 RUN git config --global user.email "you@example.com"
 RUN git config --global user.name "Your Name"
-RUN git clone -n https://github.com/microsoft/vcpkg %VCPKG_INSTALLATION_ROOT%
+RUN git clone -n https://github.com/derselbst/vcpkg %VCPKG_INSTALLATION_ROOT%
 WORKDIR ${VCPKG_INSTALLATION_ROOT}
 RUN git checkout --force %VCPKG_REVISION%
 
 RUN bootstrap-vcpkg.bat
 
 ARG PLATFORM=x64
-ENV VCPKG_MAX_CONCURRENCY=3
+ENV VCPKG_MAX_CONCURRENCY=2
 
 # tell vcpkg to only compile release package, not debug ones
 RUN echo set(VCPKG_BUILD_TYPE release) >> triplets/%PLATFORM%-windows.cmake
@@ -85,20 +85,23 @@ RUN echo set(VCPKG_BUILD_TYPE release) >> triplets/%PLATFORM%-windows-static.cma
 
 RUN  vcpkg install --clean-after-build pkgconf:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows tiff:%PLATFORM%-windows exiv2:%PLATFORM%-windows libraw:%PLATFORM%-windows libpng:%PLATFORM%-windows ecm:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows-static tiff:%PLATFORM%-windows-static exiv2:%PLATFORM%-windows-static libraw:%PLATFORM%-windows-static libpng:%PLATFORM%-windows-static ecm:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows libjpeg-turbo:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build qtbase:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build qtbase:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build tiff:%PLATFORM%-windows tiff:%PLATFORM%-windows-static 
 
-RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build exiv2:%PLATFORM%-windows exiv2:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build libraw:%PLATFORM%-windows libraw:%PLATFORM%-windows-static 
 
-RUN  vcpkg install --clean-after-build libjxl:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build libjxl:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build libpng:%PLATFORM%-windows libpng:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,png,testlib,thread,widgets]:%PLATFORM%-windows qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,png,testlib,thread,widgets]:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build libjxl:%PLATFORM%-windows libjxl:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libmad:%PLATFORM%-windows ffmpeg:%PLATFORM%-windows libopenmpt:%PLATFORM%-windows portaudio:%PLATFORM%-windows libebur128:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows
 RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows-static libmad:%PLATFORM%-windows-static ffmpeg:%PLATFORM%-windows-static libopenmpt:%PLATFORM%-windows-static portaudio:%PLATFORM%-windows-static libebur128:%PLATFORM%-windows-static fluidsynth:%PLATFORM%-windows-static
