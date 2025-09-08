@@ -63,7 +63,7 @@ SHELL ["cmd", "/S", "/C"]
 
 
 
-FROM buildtools AS vcpkg-builder
+FROM buildtools
 
 ENV VCPKG_INSTALLATION_ROOT=C:\vcpkg
 ENV VCPKG_REVISION=70f425a897fcde3783b86b39add480d6e663795f
@@ -89,51 +89,32 @@ RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows libjpeg-
 
 RUN  vcpkg install --clean-after-build tiff:%PLATFORM%-windows tiff:%PLATFORM%-windows-static 
 
-RUN  vcpkg install --clean-after-build exiv2:%PLATFORM%-windows exiv2:%PLATFORM%-windows-static
-
 RUN  vcpkg install --clean-after-build libraw:%PLATFORM%-windows libraw:%PLATFORM%-windows-static 
 
 RUN  vcpkg install --clean-after-build libpng:%PLATFORM%-windows libpng:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,png,testlib,thread,widgets]:%PLATFORM%-windows qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,png,testlib,thread,widgets]:%PLATFORM%-windows-static
-
-RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
-
-RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build brotli:x64-windows brotli:x64-windows-static
 
 RUN  vcpkg install --clean-after-build libjxl:%PLATFORM%-windows libjxl:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libmad:%PLATFORM%-windows ffmpeg:%PLATFORM%-windows libopenmpt:%PLATFORM%-windows portaudio:%PLATFORM%-windows libebur128:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows
-RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows-static libmad:%PLATFORM%-windows-static ffmpeg:%PLATFORM%-windows-static libopenmpt:%PLATFORM%-windows-static portaudio:%PLATFORM%-windows-static libebur128:%PLATFORM%-windows-static fluidsynth:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build exiv2:%PLATFORM%-windows exiv2:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build zlib:%PLATFORM%-windows zlib:%PLATFORM%-windows-static
 
+RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libsndfile:%PLATFORM%-windows-static
 
-FROM ${FROM_IMAGE} AS powershell-builder
+RUN  vcpkg install --clean-after-build libmad:%PLATFORM%-windows libmad:%PLATFORM%-windows-static
 
-WORKDIR /
-USER "NT AUTHORITY\SYSTEM"
-ADD https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/PowerShell-7.2.5-win-x64.zip C:\powershell.zip
-SHELL ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass"]
-RUN Expand-Archive C:\powershell.zip -DestinationPath C:\PowerShell
-SHELL ["cmd", "/S", "/C"]
-RUN copy PowerShell\pwsh.exe PowerShell\powershell.exe
+RUN  vcpkg install --clean-after-build ffmpeg:%PLATFORM%-windows ffmpeg:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build libopenmpt:%PLATFORM%-windows libopenmpt:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build portaudio:%PLATFORM%-windows portaudio:%PLATFORM%-windows-static 
+
+RUN  vcpkg install --clean-after-build libebur128:%PLATFORM%-windows libebur128:%PLATFORM%-windows-static 
+
+#RUN  vcpkg install --clean-after-build fluidsynth:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows-static
 
 
-FROM  mcr.microsoft.com/windows/servercore:ltsc2022
 
-COPY --from=buildtools C:/BuildTools ./BuildTools
-COPY --from=buildtools ["C:/Program Files/Git", "C:/Program Files/Git"]
-COPY --from=powershell-builder ["C:/PowerShell", "C:/PowerShell"]
-COPY --from=vcpkg-builder ["C:/vcpkg/scripts", "./vcpkg/scripts"]
-COPY --from=vcpkg-builder ["C:/vcpkg/triplets", "./vcpkg/triplets"]
-COPY --from=vcpkg-builder ["C:/vcpkg/toolsrc", "./vcpkg/toolsrc"]
-COPY --from=vcpkg-builder ["C:/vcpkg/installed", "./vcpkg/installed"]
-COPY --from=vcpkg-builder ["C:/vcpkg/downloads/tools/cmake-3.27.1-windows/cmake-3.27.1-windows-i386", "./CMake"]
-COPY --from=vcpkg-builder ["C:/vcpkg/.vcpkg-root", "./vcpkg/.vcpkg-root"]
-COPY --from=vcpkg-builder ["C:/Program Files (x86)/Windows Kits/10", "C:/Program Files (x86)/Windows Kits/10"]
-RUN setx path "%path%;C:\Program Files\Git\bin;C:\CMake\bin;C:\PowerShell"
-
-# Use developer command prompt and start PowerShell if no other command specified.
-#ENTRYPOINT C:\BuildTools\Common7\Tools\VsDevCmd.bat
 
