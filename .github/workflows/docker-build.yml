@@ -108,7 +108,7 @@ jobs:
 
           $labelArgs = $labels | ForEach-Object { "--label `"" + $_ + "`"" } -join ' '
 
-          $buildCmd = "docker build $cacheFromArgs $labelArgs -f ${{ matrix.dockerfile }} $tagArgs ."
+          $buildCmd = "docker build $cacheFromArgs $labelArgs -f ${{ matrix.dockerfile }} $tagArgs -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest ."
           Write-Host "Running build command:"
           Write-Host $buildCmd
           Invoke-Expression $buildCmd
@@ -120,6 +120,7 @@ jobs:
             docker push $t
             docker push $t
           }
+          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
 
       - name: Image build summary
         run: |
