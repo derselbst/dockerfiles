@@ -100,12 +100,12 @@ jobs:
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          docker build --cache-from ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME } -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
+          docker build --cache-from ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }
+          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }}
 
       - name: Image build summary
         run: |
