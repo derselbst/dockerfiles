@@ -13,6 +13,7 @@ env:
   REGISTRY_USERNAME: ${{ vars.DOCKER_USERNAME || github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.GITHUB_TOKEN }}
   DOCKER_BUILD_EXPORT_LEGACY: "true"
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   build-docker-images:
@@ -86,15 +87,25 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
+      - name: debug labels and tags
+        shell: bash
+        run: |
+          echo Tags:
+          echo ${{ steps.meta.outputs.tags }}
+          echo
+          echo Labels:
+          echo ${{ steps.meta.outputs.labels }}
+        
       - name: Build and push Docker image (Windows)
         if: runner.os == 'Windows'
         shell: cmd
         run: |
-          docker build --cache-from ghcr.io/derselbst/${{ matrix.dockerfile }}:latest -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
+          docker build --cache-from ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME } -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
+          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }
 
       - name: Image build summary
         run: |
