@@ -1,11 +1,11 @@
 
 ARG FROM_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
-FROM ${FROM_IMAGE} AS powershell-builder
+FROM ${FROM_IMAGE}
 
 WORKDIR /
 USER "NT AUTHORITY\SYSTEM"
-ADD https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/PowerShell-7.2.5-win-x64.zip C:\powershell.zip
+ADD "https://github.com/PowerShell/PowerShell/releases/download/v7.2.5/PowerShell-7.2.5-win-x64.zip" "powershell.zip"
 SHELL ["powershell.exe", "-NoLogo", "-ExecutionPolicy", "Bypass"]
 RUN Expand-Archive C:\powershell.zip -DestinationPath C:\PowerShell
 SHELL ["cmd", "/S", "/C"]
