@@ -113,7 +113,8 @@ RUN  vcpkg install --clean-after-build portaudio:%PLATFORM%-windows portaudio:%P
 
 RUN  vcpkg install --clean-after-build libebur128:%PLATFORM%-windows libebur128:%PLATFORM%-windows-static 
 
-#RUN  vcpkg install --clean-after-build fluidsynth:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build fluidsynth:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows-static
+
 
 
 

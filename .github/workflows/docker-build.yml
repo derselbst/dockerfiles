@@ -4,15 +4,13 @@ on:
   push:
     paths-ignore:
       - 'README.md'
-  pull_request:
-    paths-ignore:
-      - 'README.md'
 
 env:
   REGISTRY: ${{ vars.DOCKER_REGISTRY || 'ghcr.io' }}
   REGISTRY_USERNAME: ${{ vars.DOCKER_USERNAME || github.actor }}
   REGISTRY_PASSWORD: ${{ secrets.DOCKER_PASSWORD || secrets.GITHUB_TOKEN }}
   DOCKER_BUILD_EXPORT_LEGACY: "true"
+  BRANCH_NAME: ${{ github.head_ref || github.ref_name }}
 
 jobs:
   build-docker-images:
@@ -29,6 +27,12 @@ jobs:
             os: ubuntu-latest
             platforms: linux/amd64
           - dockerfile: qt6.win
+            os: windows-2022
+            platforms: windows/amd64
+          - dockerfile: ps.win
+            os: windows-2022
+            platforms: windows/amd64
+          - dockerfile: qt6-ps.win
             os: windows-2022
             platforms: windows/amd64
       fail-fast: false
@@ -82,12 +86,37 @@ jobs:
 
       - name: Build and push Docker image (Windows)
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: pwsh
         run: |
-          docker build -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
+          # Grab the multiline tags output, split on newlines (handles CRLF and LF), trim empty lines
+          $tags = '${{ steps.meta.outputs.tags }}' -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+          
+          $labels = '${{ steps.meta.outputs.labels }}' -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+
+          if (-not $tags -or $tags.Count -eq 0) {
+            Write-Error "No tags found in steps.meta.outputs.tags"
+            exit 1
+          }
+
+          # Build -t arguments string: -t "tag1" -t "tag2" ...
+          $tagArgs = ($tags | ForEach-Object { "-t `"$($_)`"" }) -join ' '
+
+          $cacheFromArgs = ($tags | ForEach-Object { "--cache-from `"$($_)`"" }) -join ' '
+
+          $labelArgs = ($labels | ForEach-Object { "--label `"$($_)`"" }) -join ' '
+
+          $buildCmd = "docker build $cacheFromArgs $labelArgs -f ${{ matrix.dockerfile }} $tagArgs -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest ."
+          Write-Host "Running build command:"
+          Write-Host $buildCmd
+          Invoke-Expression $buildCmd
+
+          # Push each tag individually
+          foreach ($t in $tags) {
+            Write-Host "Pushing $t"
+            docker push $t
+            docker push $t
+            docker push $t
+          }
           docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
 
       - name: Image build summary
