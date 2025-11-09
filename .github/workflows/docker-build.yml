@@ -87,15 +87,6 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: debug labels and tags
-        shell: bash
-        run: |
-          echo Tags:
-          echo ${{ steps.meta.outputs.tags }}
-          echo
-          echo Labels:
-          echo ${{ steps.meta.outputs.labels }}
-        
       - name: Build and push Docker image (Windows)
         if: runner.os == 'Windows'
         shell: cmd
