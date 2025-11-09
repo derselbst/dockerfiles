@@ -28,7 +28,13 @@ jobs:
           - dockerfile: qt6.ubuntu
             os: ubuntu-latest
             platforms: linux/amd64
-          - dockerfile: qt6.win
+          # - dockerfile: qt6.win
+          #   os: windows-2022
+          #   platforms: windows/amd64
+          - dockerfile: ps.win
+            os: windows-2022
+            platforms: windows/amd64
+          - dockerfile: qt6-ps.win
             os: windows-2022
             platforms: windows/amd64
       fail-fast: false
