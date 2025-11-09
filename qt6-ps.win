@@ -1,12 +1,11 @@
 
+ARG FROM_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 
 FROM ghcr.io/derselbst/qt6.win:latest AS vcpkg-builder
-
 
 FROM ghcr.io/derselbst/ps.win:latest AS powershell-builder
 
 
-ARG FROM_IMAGE=mcr.microsoft.com/windows/servercore:ltsc2022
 FROM ${FROM_IMAGE}
 
 COPY --from=vcpkg-builder C:/BuildTools ./BuildTools
