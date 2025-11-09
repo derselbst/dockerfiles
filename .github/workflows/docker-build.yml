@@ -89,14 +89,37 @@ jobs:
 
       - name: Build and push Docker image (Windows)
         if: runner.os == 'Windows'
-        shell: cmd
+        shell: pwsh
         run: |
-          docker build --cache-from ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -f ${{ matrix.dockerfile }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }} -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest .
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:latest
-          docker push ghcr.io/derselbst/${{ matrix.dockerfile }}:${{ env.BRANCH_NAME }}
+          # Grab the multiline tags output, split on newlines (handles CRLF and LF), trim empty lines
+          $tags = '${{ steps.meta.outputs.tags }}' -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+          
+          $labels = '${{ steps.meta.outputs.labels }}' -split "`r?`n" | ForEach-Object { $_.Trim() } | Where-Object { $_ -ne '' }
+
+          if (-not $tags -or $tags.Count -eq 0) {
+            Write-Error "No tags found in steps.meta.outputs.tags"
+            exit 1
+          }
+
+          # Build -t arguments string: -t "tag1" -t "tag2" ...
+          $tagArgs = $tags | ForEach-Object { "-t `"" + $_ + "`"" } -join ' '
+
+          $cacheFromArgs = $tags | ForEach-Object { "--cache-from `"" + $_ + "`"" } -join ' '
+
+          $labelArgs = $labels | ForEach-Object { "--label `"" + $_ + "`"" } -join ' '
+
+          $buildCmd = "docker build $cacheFromArgs $labelArgs -f ${{ matrix.dockerfile }} $tagArgs ."
+          Write-Host "Running build command:"
+          Write-Host $buildCmd
+          Invoke-Expression $buildCmd
+
+          # Push each tag individually
+          foreach ($t in $tags) {
+            Write-Host "Pushing $t"
+            docker push $t
+            docker push $t
+            docker push $t
+          }
 
       - name: Image build summary
         run: |
