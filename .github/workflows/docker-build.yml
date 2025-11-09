@@ -102,11 +102,11 @@ jobs:
           }
 
           # Build -t arguments string: -t "tag1" -t "tag2" ...
-          $tagArgs = $tags | ForEach-Object { "-t `"" + $_ + "`"" } -join ' '
+          $tagArgs = ($tags | ForEach-Object { "-t `"$($_)`"" }) -join ' '
 
-          $cacheFromArgs = $tags | ForEach-Object { "--cache-from `"" + $_ + "`"" } -join ' '
+          $cacheFromArgs = ($tags | ForEach-Object { "--cache-from `"$($_)`"" }) -join ' '
 
-          $labelArgs = $labels | ForEach-Object { "--label `"" + $_ + "`"" } -join ' '
+          $labelArgs = ($labels | ForEach-Object { "--label `"$($_)`"" }) -join ' '
 
           $buildCmd = "docker build $cacheFromArgs $labelArgs -f ${{ matrix.dockerfile }} $tagArgs -t ghcr.io/derselbst/${{ matrix.dockerfile }}:latest ."
           Write-Host "Running build command:"
