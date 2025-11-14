@@ -21,6 +21,7 @@ COPY --from=vcpkg-builder ["C:/Program Files (x86)/Windows Kits/10", "C:/Program
 RUN setx path "%path%;C:\Program Files\Git\bin;C:\CMake\bin;C:\PowerShell"
 
 # Use developer command prompt and start PowerShell if no other command specified.
-ENTRYPOINT C:\BuildTools\Common7\Tools\VsDevCmd.bat
+#ENTRYPOINT C:\BuildTools\Common7\Tools\VsDevCmd.bat
+
 
 
