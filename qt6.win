@@ -85,6 +85,8 @@ RUN echo set(VCPKG_BUILD_TYPE release) >> triplets/%PLATFORM%-windows-static.cma
 
 RUN  vcpkg install --clean-after-build pkgconf:%PLATFORM%-windows-static
 
+RUN  vcpkg install --clean-after-build ecm:%PLATFORM%-windows ecm:%PLATFORM%-windows-static
+
 RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows libjpeg-turbo:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build tiff:%PLATFORM%-windows tiff:%PLATFORM%-windows-static 
@@ -121,3 +123,4 @@ RUN  vcpkg install --clean-after-build qtbase[concurrent,core,dbus,freetype,gui,
 RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+
