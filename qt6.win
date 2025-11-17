@@ -85,6 +85,8 @@ RUN echo set(VCPKG_BUILD_TYPE release) >> triplets/%PLATFORM%-windows-static.cma
 
 RUN  vcpkg install --clean-after-build pkgconf:%PLATFORM%-windows-static
 
+RUN  vcpkg install --clean-after-build ecm:%PLATFORM%-windows ecm:%PLATFORM%-windows-static
+
 RUN  vcpkg install --clean-after-build libjpeg-turbo:%PLATFORM%-windows libjpeg-turbo:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build tiff:%PLATFORM%-windows tiff:%PLATFORM%-windows-static 
@@ -116,7 +118,11 @@ RUN  vcpkg install --clean-after-build libebur128:%PLATFORM%-windows libebur128:
 RUN  vcpkg install --clean-after-build fluidsynth:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows-static
 
 
+RUN  vcpkg install --clean-after-build --allow-unsupported qtbase[concurrent,core,dbus,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows-static
 
+RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
+
+RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
 
 
 
