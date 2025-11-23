@@ -66,7 +66,7 @@ SHELL ["cmd", "/S", "/C"]
 FROM buildtools
 
 ENV VCPKG_INSTALLATION_ROOT=C:\vcpkg
-ENV VCPKG_REVISION=70f425a897fcde3783b86b39add480d6e663795f
+ENV VCPKG_REVISION=3fc501f14b449adb2d2891b92e75769591211a17
 
 RUN git config --global user.email "you@example.com"
 RUN git config --global user.name "Your Name"
@@ -103,11 +103,11 @@ RUN  vcpkg install --clean-after-build exiv2:%PLATFORM%-windows exiv2:%PLATFORM%
 
 RUN  vcpkg install --clean-after-build zlib:%PLATFORM%-windows zlib:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libsndfile:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libsndfile:%PLATFORM%-windows-static fluidsynth[sndfile]:%PLATFORM%-windows fluidsynth[sndfile]:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build libmad:%PLATFORM%-windows libmad:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build ffmpeg:%PLATFORM%-windows ffmpeg:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build ffmpeg[all-gpl]:%PLATFORM%-windows ffmpeg[all-gpl]:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build libopenmpt:%PLATFORM%-windows libopenmpt:%PLATFORM%-windows-static
 
@@ -115,14 +115,14 @@ RUN  vcpkg install --clean-after-build portaudio:%PLATFORM%-windows portaudio:%P
 
 RUN  vcpkg install --clean-after-build libebur128:%PLATFORM%-windows libebur128:%PLATFORM%-windows-static 
 
-RUN  vcpkg install --clean-after-build fluidsynth:%PLATFORM%-windows fluidsynth:%PLATFORM%-windows-static
 
 
-RUN  vcpkg install --clean-after-build --allow-unsupported qtbase[concurrent,core,dbus,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows-static
+RUN  vcpkg install --clean-after-build qtbase[concurrent,core,dbus,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows qtbase[concurrent,core,freetype,gui,harfbuzz,icu,jpeg,opengl,png,testlib,thread,widgets]:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+
 
 
 
