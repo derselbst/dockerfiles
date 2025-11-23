@@ -103,6 +103,8 @@ RUN  vcpkg install --clean-after-build exiv2:%PLATFORM%-windows exiv2:%PLATFORM%
 
 RUN  vcpkg install --clean-after-build zlib:%PLATFORM%-windows zlib:%PLATFORM%-windows-static
 
+RUN  vcpkg install --clean-after-build libsamplerate:%PLATFORM%-windows libsamplerate:%PLATFORM%-windows-static
+
 RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libsndfile:%PLATFORM%-windows-static fluidsynth[sndfile]:%PLATFORM%-windows fluidsynth[sndfile]:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build libmad:%PLATFORM%-windows libmad:%PLATFORM%-windows-static
