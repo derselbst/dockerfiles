@@ -66,7 +66,7 @@ SHELL ["cmd", "/S", "/C"]
 FROM buildtools
 
 ENV VCPKG_INSTALLATION_ROOT=C:\vcpkg
-ENV VCPKG_REVISION=3fc501f14b449adb2d2891b92e75769591211a17
+ENV VCPKG_REVISION=bdc3ffa98d545319443003bf36de6eace3bc7da8
 
 RUN git config --global user.email "you@example.com"
 RUN git config --global user.name "Your Name"
@@ -123,6 +123,7 @@ RUN  vcpkg install --clean-after-build qtbase[concurrent,core,dbus,freetype,gui,
 RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+
 
 
 
