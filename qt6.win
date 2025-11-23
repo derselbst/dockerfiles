@@ -107,13 +107,14 @@ RUN  vcpkg install --clean-after-build libsndfile:%PLATFORM%-windows libsndfile:
 
 RUN  vcpkg install --clean-after-build libmad:%PLATFORM%-windows libmad:%PLATFORM%-windows-static
 
-RUN  vcpkg install --clean-after-build ffmpeg[all-gpl]:%PLATFORM%-windows ffmpeg[all-gpl]:%PLATFORM%-windows-static
-
 RUN  vcpkg install --clean-after-build libopenmpt:%PLATFORM%-windows libopenmpt:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build portaudio:%PLATFORM%-windows portaudio:%PLATFORM%-windows-static 
 
 RUN  vcpkg install --clean-after-build libebur128:%PLATFORM%-windows libebur128:%PLATFORM%-windows-static 
+
+RUN  vcpkg install --clean-after-build ffmpeg[all-gpl]:%PLATFORM%-windows ffmpeg[all-gpl]:%PLATFORM%-windows-static
+
 
 
 
@@ -122,6 +123,7 @@ RUN  vcpkg install --clean-after-build qtbase[concurrent,core,dbus,freetype,gui,
 RUN  vcpkg install --clean-after-build qtsvg:%PLATFORM%-windows qtsvg:%PLATFORM%-windows-static
 
 RUN  vcpkg install --clean-after-build qtimageformats:%PLATFORM%-windows qtimageformats:%PLATFORM%-windows-static
+
 
 
 
