@@ -14,16 +14,12 @@ COPY --from=powershell-builder ["C:/PowerShell", "C:/PowerShell"]
 COPY --from=vcpkg-builder ["C:/vcpkg/scripts", "./vcpkg/scripts"]
 COPY --from=vcpkg-builder ["C:/vcpkg/triplets", "./vcpkg/triplets"]
 COPY --from=vcpkg-builder ["C:/vcpkg/toolsrc", "./vcpkg/toolsrc"]
-COPY --from=vcpkg-builder ["C:/vcpkg/installed/vcpkg", "./vcpkg/installed/vcpkg"]
-COPY --from=vcpkg-builder ["C:/vcpkg/installed/x64-windows-static", "./vcpkg/installed/x64-windows-static"]
+COPY --from=vcpkg-builder ["C:/vcpkg/installed", "./vcpkg/installed"]
 COPY --from=vcpkg-builder ["C:/vcpkg/downloads/tools/cmake-3.30.1-windows/cmake-3.30.1-windows-i386", "./CMake"]
 COPY --from=vcpkg-builder ["C:/vcpkg/.vcpkg-root", "./vcpkg/.vcpkg-root"]
 COPY --from=vcpkg-builder ["C:/vcpkg/vcpkg.exe", "./vcpkg/vcpkg.exe"]
 COPY --from=vcpkg-builder ["C:/Program Files (x86)/Windows Kits/10", "C:/Program Files (x86)/Windows Kits/10"]
 RUN setx path "%path%;C:\Program Files\Git\bin;C:\CMake\bin;C:\PowerShell"
-
-# Use developer command prompt and start PowerShell if no other command specified.
-#ENTRYPOINT C:\BuildTools\Common7\Tools\VsDevCmd.bat
 
 
 
